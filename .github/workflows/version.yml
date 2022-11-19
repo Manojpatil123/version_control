@@ -12,7 +12,7 @@ jobs:
         fetch-depth: '0'
 
     - name: Bump version and push tag
-      uses: Manojpatil123/version_control@v1
+      uses: Manojpatil123/version_control
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         WITH_V: true
