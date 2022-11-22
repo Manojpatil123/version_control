@@ -90,12 +90,12 @@ jobs:
            if [[ "${{github.base_ref}}" == "main" || "${{github.ref}}" == "refs/heads/main" ]]; then
             echo "::set-output name=DOCKERHUB_IMAGE::outgrow-sensor-tracking-microservice-main"
             echo "::set-output name=NAMESPACE::outgrow-sensor-tracking-microservice"
-          fi
+           fi
 
-          if [[ "${{github.base_ref}}" == "staging" || "${{github.ref}}" == "refs/heads/staging" ]]; then
+           if [[ "${{github.base_ref}}" == "staging" || "${{github.ref}}" == "refs/heads/staging" ]]; then
             echo "::set-output name=DOCKERHUB_IMAGE::outgrow-sensor-tracking-microservice-staging"
             echo "::set-output name=NAMESPACE::outgrow-sensor-tracking-microservice-staging"
-          fi
+           fi
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
