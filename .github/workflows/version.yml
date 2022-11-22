@@ -1,143 +1,30 @@
-name: Outgrow Pipeline Action
-
+name: Bump version
 on:
   push:
-    branches: [ "main","staging" ]
-env:
-  DOCKERHUB_IMAGE: outgrow-elasticsearch-provider-main
-  APP_URL: https://elastic.outgrowdigital.com
-  NAMESPACE: outgrow-web-production
+    branches:
+      - main
 jobs:
-  application_testing:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: true
-      matrix:
-        python-version: [3.8,3.9]
-    name: 🪧 Python ${{ matrix.python-version }} Application Testing
-    steps:
-      - name: ⬇️ Checkout Repository
-        uses: actions/checkout@v3
-      - name: 🔃 Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v1
-        with:
-          python-version: ${{ matrix.python-version }}
-      
-  #   - name: ⤵ Install Composer dependencies
-  #     run: composer install --prefer-dist --no-interaction --no-progress
-
-  #   - name: ☢ Execute tests
-  #     run: vendor/bin/phpunit
-  tagging_releases:
-    needs: [ application_testing ]
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
+  build:
     runs-on: ubuntu-22.04
-    outputs:
-      new_tag_version: ${{ steps.new_tag_builder.outputs.new_tag }}
-    name: 🧿Tagging & Releasing Application
     steps:
-      - name: ⬇️ Checkout Repository
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: '0'
-      - name: 🔖 Tag version
-        id: tag_version
-        uses: anothrNick/github-tag-action@v1
-        env:
-          DEFAULT_BUMP: patch
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          WITH_V: true
-          if: github.ref == 'refs/heads/main'
-          PRERELEASE: false
-      - name: 🔃 Building Version Output
-        id: new_tag_builder
-        run: echo "new_tag=${{ steps.tag_version.outputs.new_tag }}" >> $GITHUB_OUTPUT
-      - name: 🛎️ Create a GitHub release
-        uses: release-drafter/release-drafter@master
-        with:
-          version: ${{ steps.tag_version.outputs.new_tag }}
-          name: Release ${{ steps.tag_version.outputs.new_tag }}
-          tag: ${{ steps.tag_version.outputs.new_tag }}
-          publish: true
-          if: github.ref == 'refs/heads/main'
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  staging_production_application_build:
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
-    needs: [ application_testing , tagging_releases ]
-    name: 🧿Building Docker Image & Uploading
-    runs-on: ubuntu-latest
-    outputs:
-      namespace: ${{steps.set_docker_hub_variable.outputs.NAMESPACE}}
-      docker_hub_image: ${{steps.set_docker_hub_variable.outputs.DOCKERHUB_IMAGE}}
-    steps:
-      - name: ‼ Set up QEMU
-        uses: docker/setup-qemu-action@v2
-      - name: ✳ Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: 🔃 Printing Version Output
-        run: echo "${{needs.tagging_releases.outputs.new_tag_version}}"
-      - name: ⬇️ Set DockerHub Variable
-        id: set_docker_hub_variable
-        run: |
-           if [[ "${{github.base_ref}}" == "main" || "${{github.ref}}" == "refs/heads/main" ]]; then
-            echo "::set-output name=DOCKERHUB_IMAGE::outgrow-sensor-tracking-microservice-main"
-            echo "::set-output name=NAMESPACE::outgrow-sensor-tracking-microservice"
-           fi
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: '0'
 
-           if [[ "${{github.base_ref}}" == "staging" || "${{github.ref}}" == "refs/heads/staging" ]]; then
-            echo "::set-output name=DOCKERHUB_IMAGE::outgrow-sensor-tracking-microservice-staging"
-            echo "::set-output name=NAMESPACE::outgrow-sensor-tracking-microservice-staging"
-           fi
-      - name: Build and push
-        uses: docker/build-push-action@v3
-        with:
-          build-args: |
-            "VERSION=${{needs.tagging_releases.outputs.new_tag_version}}"
+    - name: Bump version and push tag
+      uses: anothrNick/github-tag-action@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        WITH_V: true
 
-          secrets: |
-            
-            "MAIL_PASSWORD=${{ secrets.NOREPLYIT_MAIL_PASSWORD }}"
-            "DB_PASSWORD=${{ secrets.GRAMWORKX_DB_PASSWORD }}"
-            "JIRA_API"=${{secrets.OUTGROW_JIRA_API_TOKEN}}"
-
-          push: true
-          tags: |
-            ${{ steps.meta.outputs.tags }}
-            ${{secrets.DOCKER_LOGIN}}/${{steps.set_docker_hub_variable.outputs.DOCKERHUB_IMAGE}}:${{github.run_number}}
-          labels: ${{ steps.meta.outputs.labels }}
-  staging_production_deployment:
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
-    needs: [ staging_production_application_build ]
-    name: 🧿Deploying to Outgrow Kubernetes Cluster
-    runs-on: ubuntu-latest
-    steps:
-      - name: Extract branch name
-        shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
-      - uses: actions/checkout@master
-      - uses: azure/setup-kubectl@v2.0
-      - uses: Azure/k8s-set-context@v2
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.KUBE_CONFIG }}
-      - name: Deploy to Kubernetes cluster
-        uses: Azure/k8s-deploy@v4
-        with:
-          action: deploy
-          namespace: ${{ env.NAMESPACE }}
-          manifests: |
-            k8s/${{ steps.extract_branch.outputs.branch }}/deployment.yaml
-            k8s/${{ steps.extract_branch.outputs.branch }}/service.yaml
-            k8s/${{ steps.extract_branch.outputs.branch }}/ingress.yaml
-          images: '${{secrets.DOCKER_LOGIN}}/${{ env.DOCKERHUB_IMAGE }}:${{github.run_number}}'
-          imagepullsecrets: |
-            outgrow-docker-secret
+    #- uses: actions/checkout@v2
+    - name: Install Python 3
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.9
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Run tests with pytest
+      run: pytest 
