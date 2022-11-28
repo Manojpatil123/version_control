@@ -31,6 +31,7 @@ def report1():
          df=sensortracking.sql_connection(imei_no,DB_PASSWORD)
          if(len(df)>0):
                 print('connection')
+                print(len(df))
          
       return len(df)
 
