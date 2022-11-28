@@ -55,7 +55,7 @@ def report1():
          if(len(df)>0):
            print('connection')
          else:
-             print('no connection'
+           print('no connection')
          df1=pd.DataFrame(df,columns=['id','timestamp','imei_no','temperature','pressure','humidity','rainfall','windspeed','winddirection','soil_moisture1','soil_moisture2','lw','soil_temperature','lux','flow_meter','raw_data','created_at','updated_at'])
          
          if(df1.shape[0]==0):#checking values are there or not in dataframe      
