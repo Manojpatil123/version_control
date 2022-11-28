@@ -1,2 +1,11 @@
-pytest
 flask
+pandas
+datetime
+duckdb
+pandasql
+jira
+tabulate
+requests
+gunicorn
+mysql-connector-python
+pytest
