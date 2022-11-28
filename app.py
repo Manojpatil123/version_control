@@ -52,6 +52,8 @@ def report1():
               
          imei_no=str(dataframe.iloc[i,0])#getting imei from sheet        
          df=sensortracking.sql_connection(imei_no,DB_PASSWORD)
+         if(len(df)>0);
+           print('connection')
          df1=pd.DataFrame(df,columns=['id','timestamp','imei_no','temperature','pressure','humidity','rainfall','windspeed','winddirection','soil_moisture1','soil_moisture2','lw','soil_temperature','lux','flow_meter','raw_data','created_at','updated_at'])
          
          if(df1.shape[0]==0):#checking values are there or not in dataframe      
@@ -121,6 +123,7 @@ def report1():
                
                  sensor_issues_report.loc[i]=issues_list  
                  sensor_issues_report.reset_index(inplace=True,drop=True)
+                 print(output1)
                  
         except Exception as e:
           logging.error(e)
@@ -139,7 +142,7 @@ def report1():
          
 
    result_dict=sensor_issues_report.to_dict(orient='records')
-   return jsonify(result_dict)   
+   return 'output'  
 
 if __name__ == '__main__':
     report1()
