@@ -34,6 +34,6 @@ jobs:
     - name: Build and push
       env:             
              PASSWORD: ${{ secrets.PASS}}
-      run: python .app.py
+      run: python app.py
             
           
