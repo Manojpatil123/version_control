@@ -10,7 +10,6 @@ from functions import sensortracking
 import os
 
 
-app = Flask(__name__)
 #creating logs file
 logging.basicConfig(filename='logs.txt',filemode='a',format='%(asctime)s %(levelname)s=%(message)s',datefmt="%Y-%m-%d %H:%M:%S")
 fi = open("logs.txt", "r+") 
@@ -31,7 +30,7 @@ JIRA_API=os.environ.get('JIRA_API')
 
 
 
-@app.route('/')
+
 def version():
     try:
         version = open('version', 'r').read()
@@ -41,8 +40,8 @@ def version():
 
     
 
-@app.route('/result/<id>')
-def report1(id):
+
+def report1():
    sensor_issues_report=pd.DataFrame(columns=['Buyer','Imei','device','location','Active','sensor_issues',"sensor_issue_data","issue_priority",'dates_of_faulty_data','hours_which_no_data'])
    try: 
       dataframe=pd.read_csv('https://docs.google.com/spreadsheets/d/1-RGaGIa5RpFjCdyu2HiIFpTEvzBjLeIlXCk8N5KXfWQ/export?format=csv')
@@ -129,7 +128,8 @@ def report1(id):
   
       if(sensor_issues_report.shape[0]!=0):
          #create jira ticket if issue in data 
-         sensortracking.jira_ticket(sensor_issues_report,dates,id,JIRA_API)
+        # sensortracking.jira_ticket(sensor_issues_report,dates,id,JIRA_API)
+        print('jira')
          
         
    except Exception as e:
@@ -142,7 +142,7 @@ def report1(id):
    return jsonify(result_dict)   
 
 if __name__ == '__main__':
-    app.run(port=80,debug=True)
+    report1()
 
 
      
