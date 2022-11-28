@@ -1,9 +1,17 @@
-import git      #pip install gitpython
-g = git.cmd.Git()
-blob = g.ls_remote('https://github.com/Manojpatil123/version_control.git', sort='-v:refname', tags=True)
-tags=blob.split('\n')[0].split('/')[-1]
-print(tags)
+
 
 from version import get_version
+import os
+import flask
+app = Flask(__name__)
+PASS=os.environ['PASS']
 
-version=get_version()
+
+@app.route('/')
+def version():
+
+   print(PASS)
+    
+if __name__ == '__main__':
+    app.run(port=80,debug=True)
+
