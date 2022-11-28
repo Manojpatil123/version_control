@@ -33,7 +33,9 @@ jobs:
       run: pytest 
     - name: Build and push
       env:             
-             PASSWORD: ${{ secrets.PASS}}
+         MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+         DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+         JIRA_TOKEN: ${{ secrets.JIRA_TOKEN }}
       run: python app.py
             
           
