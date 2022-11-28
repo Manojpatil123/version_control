@@ -18,18 +18,7 @@ jobs:
         pass: ${{ secrets.PASS }}
         WITH_V: true
     
-    - name: print secrets
-      run: |
-        echo $DEV_ENV_FILE &gt;&gt; src/.env
-        cat src/.env
-      shell: bash  
-      env:
-        DEV_ENV_FILE : ${{secrets.PASS}}
-    - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: DEV_ENV_FILE
-        path: src/.env 
+   
 
     #- uses: actions/checkout@v2
     - name: Install Python 3
@@ -42,3 +31,9 @@ jobs:
         pip install -r requirements.txt
     - name: Run tests with pytest
       run: pytest 
+    - name: Build and push
+      env:             
+             PASSWORD: ${{ secrets.PASS}}
+      run: python .app.py
+            
+          
