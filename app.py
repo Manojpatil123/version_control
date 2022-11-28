@@ -43,7 +43,7 @@ def report1():
          if(len(df)>0):
                 print('connection')
          
-      return jsonify(len(df)   
+      return jsonify(len(df))
 
 if __name__ == '__main__':
     app.run(port=80,debug=True)
