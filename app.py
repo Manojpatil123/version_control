@@ -14,7 +14,7 @@ import os
 
 #getting all secrets
 MAIL_PASSWORD=os.getenv('MAIL_PASSWORD')
-DB_PASSWORD=os.environ.get('DB_PASSWORD')
+DB_PASSWORD=os.getenv('DB_PASSWORD')
 JIRA_API=os.environ.get('JIRA_TOCKEN')
 
 
